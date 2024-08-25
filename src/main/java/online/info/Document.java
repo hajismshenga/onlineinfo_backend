@@ -11,9 +11,11 @@ import lombok.Data;
 public class Document {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id;  // Ensure the id is of type Long to match with repository
 
     private String title;
     private String description;
-    private byte[] fileContent; // This can be null
+    private byte[] fileContent; // This can be null if no file is provided
+
+    private Long userId; // Add this field if you need to filter by user
 }
