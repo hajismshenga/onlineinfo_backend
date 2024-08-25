@@ -1,11 +1,10 @@
 package online.info;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/document")
@@ -14,34 +13,55 @@ public class DocumentController {
     @Autowired
     private DocumentService documentService;
 
-    @GetMapping("/all")
-    public ResponseEntity<List<Document>> getAllDocuments() {
-        List<Document> documents = documentService.getAllDocuments();
-        return new ResponseEntity<>(documents, HttpStatus.OK);
-    }
-
     @PostMapping("/add")
-    public ResponseEntity<Document> addDocument(@RequestBody Document document) {
-        Document savedDocument = documentService.addDocument(document);
-        return new ResponseEntity<>(savedDocument, HttpStatus.CREATED);
-    }
-
-    @GetMapping("/documentById/{id}")
-    public ResponseEntity<Document> getDocumentById(@PathVariable("id") Long documentId) {
-        Document document = documentService.getDocumentById(documentId);
-        return new ResponseEntity<>(document, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteDocument(@PathVariable("id") Long documentId) {
-        documentService.deleteDocument(documentId);
-        return new ResponseEntity<>("Document deleted successfully", HttpStatus.OK);
+    public ResponseEntity<?> addDocument(@RequestParam("title") String title,
+                                          @RequestParam("description") String description) {
+        try {
+            documentService.addDocument(title, description, null);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while adding document.");
+        }
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<Document> updateDocument(@PathVariable("id") Long documentId, @RequestBody Document document) {
-        document.setId(documentId);
-        Document updatedDocument = documentService.updateDocument(document);
-        return new ResponseEntity<>(updatedDocument, HttpStatus.CREATED);
+    public ResponseEntity<?> updateDocument(@PathVariable Long id,
+                                             @RequestParam("title") String title,
+                                             @RequestParam("description") String description) {
+        try {
+            documentService.updateDocument(id, title, description, null);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while updating document.");
+        }
+    }
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<?> getDocumentById(@PathVariable Long id) {
+        try {
+            Document document = documentService.getDocumentById(id);
+            return ResponseEntity.ok(document);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found.");
+        }
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllDocuments() {
+        try {
+            return ResponseEntity.ok(documentService.getAllDocuments());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching documents.");
+        }
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteDocument(@PathVariable Long id) {
+        try {
+            documentService.deleteDocument(id);
+            return ResponseEntity.ok().body("Document deleted successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found.");
+        }
     }
 }
